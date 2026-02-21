@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visionneuse de documents d'archives</title>
+    <link rel="icon" type="image/png" href="favicon.png" />
+</head>
+<!--
+Copyright © 2026, Philippe Gambette
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the “Software”), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+The Software is provided “as is”, without warranty of any kind, express or implied, including but not limited to the warranties of merchantability, fitness for a particular purpose and noninfringement. In no event shall the authors or copyright holders X be liable for any claim, damages or other liability, whether in an action of contract, tort or otherwise, arising from, out of or in connection with the software or the use or other dealings in the Software.
+
+Except as contained in this notice, the name of the <copyright holders> shall not be used in advertising or otherwise to promote the sale, use or other dealings in this Software without prior written authorization from the <copyright holders>. 
+-->
+<body style="text-align:center;font-family:Garamond,Times,serif">
+    <header id="info" style="text-align:left;">
+        <h1></h1>
+        <h2></h2>
+        <div id="source"></div>
+        <div id="contributions"></div>
+    </header>
+    <hr>
+    <div class="navigation" style="font-size:1.4em;margin:auto;margin-bottom:5px">
+        <a href="" id="prev"><i class="fas fa-chevron-left"></i> &#9756;</a>
+        -
+        <label for="vue">vue </label><input type="number" name="vue" id="vue" value="1">
+        -
+        <a href="" id="next">&#9758; <i class="fas fa-chevron-right"></i></a>
+    </div>
+    <img src="" style="width: 100%;max-width:600px;display:inline-block" id="image">
+
+    <div id="transcription"
+        style="text-align:left;width: 100%;max-width:400px;display:inline-block;vertical-align:top;padding-left:20px">
+    </div>
+    <script>
+
+        let url = window.location.href;
+        let file = url.split("?")[1];
+        let params = file.split("&");
+        console.log(params)
+        let book = "";
+        let vue = "";
+        let taille = 3;
+        params.forEach(param => {
+            let [key, value] = param.split("=");
+            if (key == "book") {
+                book = value;
+            }
+            if (key == "vue") {
+                vue = parseInt(value);
+                if (vue <= 0) {
+                    vue = 0;
+                }
+            }
+            if (key == "taille") {
+                taille = parseInt(value);
+            }
+
+        })
+
+        function displayPage(book, vue) {
+            if (vue <= 0) {
+                vue = 1;
+                document.querySelector("#vue").value = 1;
+            }
+            fetch(book + '.json').then(function (response) {
+                response.json().then(function (data) {
+                    console.log(data.transcription);
+                    document.querySelector("h1").innerHTML = "<a href=\"index.html\">Archives de la Cité des dames</a>"
+                    document.querySelector("h2").innerHTML = data.titre;
+                    document.querySelector("title").innerHTML = data.titre;
+                    document.querySelector("#source").innerHTML = "Source : " + data.source;
+                    document.querySelector("#contributions").innerHTML = data.contributions;
+                    if (data.transcription["" + vue] != undefined) {
+                        document.querySelector("#transcription").innerHTML = "<h2>Transcription partielle</h3>" + data.transcription["" + vue] + "<br><br>";
+                    }
+                })
+            })
+            document.querySelector("#prev").setAttribute("href", `archive.html?book=${book}&vue=${vue - 1}&taille=${taille}`);
+            document.querySelector("#next").setAttribute("href", `archive.html?book=${book}&vue=${vue + 1}&taille=${taille}`);
+            document.querySelector("#vue").value = vue;
+            let numero = vue + "";
+            if (taille != 0) {
+                while (numero.length < taille) {
+                    numero = "0" + numero;
+                }
+            }
+            document.querySelector("#image").setAttribute("src", `${book + "/" + book + "-" + numero}.jpg`);
+        }
+        displayPage(book, vue);
+
+        document.querySelector("#vue").addEventListener("input", event => {
+            displayPage(book, parseInt(document.querySelector("#vue").value));
+        })
+    </script>
+    <hr>
+    <footer style="text-align:left">
+        <h2>Mentions légales</h2>
+        <p>Directeur de publication : <a href="http://ligm.univ-eiffel.fr/~gambette">Philippe Gambette</a>.</p>
+        <p>Site web développé pour le projet de recherche <a href="http://citedesdames.hypotheses.org">Cité des dames 2</a>.</p>
+        <p>Hébergement : <a href="https://docs.github.com/fr/pages">GitHub Pages</a>&nbsp;; <a href="https://github.com/citedesdames/archives">code source</a> sous <a href="https://fr.wikipedia.org/wiki/Licence_MIT">licence MIT</a>.</p>
+    </footer>
+</body>
+
+</html>
