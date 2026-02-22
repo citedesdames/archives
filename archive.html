@@ -17,6 +17,7 @@ The Software is provided “as is”, without warranty of any kind, express or i
 
 Except as contained in this notice, the name of the <copyright holders> shall not be used in advertising or otherwise to promote the sale, use or other dealings in this Software without prior written authorization from the <copyright holders>. 
 -->
+
 <body style="text-align:center;font-family:Garamond,Times,serif">
     <header id="info" style="text-align:left;">
         <h1></h1>
@@ -25,27 +26,28 @@ Except as contained in this notice, the name of the <copyright holders> shall no
         <div id="contributions"></div>
     </header>
     <hr>
-    <div class="navigation" style="font-size:1.4em;margin:auto;margin-bottom:5px">
-        <a href="" id="prev"><i class="fas fa-chevron-left"></i> &#9756;</a>
-        -
-        <label for="vue">vue </label><input type="number" name="vue" id="vue" value="1">
-        -
-        <a href="" id="next">&#9758; <i class="fas fa-chevron-right"></i></a>
-    </div>
-    <img src="" style="width: 100%;max-width:600px;display:inline-block" id="image">
-
-    <div id="transcription"
-        style="text-align:left;width: 100%;max-width:400px;display:inline-block;vertical-align:top;padding-left:20px">
-    </div>
+    <main>
+        <div class="navigation" style="font-size:1.4em;margin:auto;margin-bottom:5px">
+            <a href="" id="prev"><i class="fas fa-chevron-left"></i> &#9756;</a>
+            -
+            <label for="vue">vue </label><input type="number" name="vue" id="vue" value="1">
+            -
+            <a href="" id="next">&#9758; <i class="fas fa-chevron-right"></i></a>
+        </div>
+        <img src="" style="width: 100%;max-width:600px;display:inline-block" id="image">
+        <div id="transcription"
+            style="text-align:left;width: 100%;max-width:400px;display:inline-block;vertical-align:top;padding-left:20px">
+        </div>
+    </main>
     <script>
-
+        // Extract parameters from URL
         let url = window.location.href;
         let file = url.split("?")[1];
         let params = file.split("&");
-        console.log(params)
         let book = "";
         let vue = "";
-        let taille = 3;
+        let vueInput = "";
+        let taille = 3; // number of digits for page numbers
         params.forEach(param => {
             let [key, value] = param.split("=");
             if (key == "book") {
@@ -60,27 +62,55 @@ Except as contained in this notice, the name of the <copyright holders> shall no
             if (key == "taille") {
                 taille = parseInt(value);
             }
-
         })
 
+        // Detect image load errors
+        window.addEventListener('error', function (e) {
+            if (e.target.id == "image") {
+                if (document.querySelector("#vue").value != ""){
+                if (vue == 1) {
+                    // Go to the welcome page of the website if page 1 not found
+                    document.querySelector("main").innerHTML = "<p style=\"color:red\">Problème de chargement&nbsp;: la première vue du document demandé n'a pas été trouvée.</p><p><a href=\"index.html\">Retour à l'accueil</a></p>"
+                    document.querySelector("#image").style.display = "none";
+                } else {
+                    console.log("resssse")
+                    document.querySelector(".navigation").innerHTML = "<p style=\"color:#EE4444;background-color:#FFEECC;font-weight:bold\">Problème de chargement de la page "+vue+` du document. Essayez <a href="archive.html?book=${book}&vue=1&taille=${taille}">la première vue</a></p>` + document.querySelector(".navigation").innerHTML
+                    document.querySelector("#transcription").innerHTML = "";
+                    document.querySelector("#image").style.display = "none";
+                }
+                } else {
+                    console.log("ok")
+                }
+            }
+        }, true);
+
+        // Display information about the loaded image
         function displayPage(book, vue) {
+            document.querySelector("#image").style.display = "block";
+
+            // Reset view number if negative
             if (vue <= 0) {
                 vue = 1;
                 document.querySelector("#vue").value = 1;
             }
+
+            // Load book and page information from JSON file
             fetch(book + '.json').then(function (response) {
                 response.json().then(function (data) {
-                    console.log(data.transcription);
+                    // Load book information
                     document.querySelector("h1").innerHTML = "<a href=\"index.html\">Archives de la Cité des dames</a>"
                     document.querySelector("h2").innerHTML = data.titre;
                     document.querySelector("title").innerHTML = data.titre;
                     document.querySelector("#source").innerHTML = "Source : " + data.source;
                     document.querySelector("#contributions").innerHTML = data.contributions;
+                    // Load transcription if it exists
                     if (data.transcription["" + vue] != undefined) {
                         document.querySelector("#transcription").innerHTML = "<h2>Transcription partielle</h3>" + data.transcription["" + vue] + "<br><br>";
                     }
                 })
             })
+
+            // Links to previous and next image, and current image display
             document.querySelector("#prev").setAttribute("href", `archive.html?book=${book}&vue=${vue - 1}&taille=${taille}`);
             document.querySelector("#next").setAttribute("href", `archive.html?book=${book}&vue=${vue + 1}&taille=${taille}`);
             document.querySelector("#vue").value = vue;
@@ -94,16 +124,22 @@ Except as contained in this notice, the name of the <copyright holders> shall no
         }
         displayPage(book, vue);
 
+        // Allow the use of the keyboard to move to another page
         document.querySelector("#vue").addEventListener("input", event => {
-            displayPage(book, parseInt(document.querySelector("#vue").value));
+            console.log(";;;"+parseInt(document.querySelector("#vue").value))
+            vue = parseInt(document.querySelector("#vue").value);
+            displayPage(book, vue);
         })
     </script>
     <hr>
     <footer style="text-align:left">
         <h2>Mentions légales</h2>
         <p>Directeur de publication : <a href="http://ligm.univ-eiffel.fr/~gambette">Philippe Gambette</a>.</p>
-        <p>Site web développé pour le projet de recherche <a href="http://citedesdames.hypotheses.org">Cité des dames 2</a>.</p>
-        <p>Hébergement : <a href="https://docs.github.com/fr/pages">GitHub Pages</a>&nbsp;; <a href="https://github.com/citedesdames/archives">code source</a> sous <a href="https://fr.wikipedia.org/wiki/Licence_MIT">licence MIT</a>.</p>
+        <p>Site web développé pour le projet de recherche <a href="http://citedesdames.hypotheses.org">Cité des dames
+                2</a>.</p>
+        <p>Hébergement : <a href="https://docs.github.com/fr/pages">GitHub Pages</a>&nbsp;; <a
+                href="https://github.com/citedesdames/archives">code source</a> sous <a
+                href="https://fr.wikipedia.org/wiki/Licence_MIT">licence MIT</a>.</p>
     </footer>
 </body>
 
