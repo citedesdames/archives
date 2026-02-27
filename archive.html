@@ -103,9 +103,14 @@ Except as contained in this notice, the name of the <copyright holders> shall no
                     document.querySelector("title").innerHTML = data.titre;
                     document.querySelector("#source").innerHTML = "Source : " + data.source;
                     document.querySelector("#contributions").innerHTML = data.contributions;
+                    // Load folio number if it exists
+                    let folio = "";
+                    if (data.folio["" + vue] != undefined) {
+                        folio = " (f.&nbsp;" + data.folio["" + vue] + ")";
+                    }
                     // Load transcription if it exists
                     if (data.transcription["" + vue] != undefined) {
-                        document.querySelector("#transcription").innerHTML = "<h2>Transcription partielle</h3>" + data.transcription["" + vue] + "<br><br>";
+                        document.querySelector("#transcription").innerHTML = "<h3>Transcription partielle" + folio + "</h3>" + data.transcription["" + vue] + "<br><br>";
                     }
                 })
             })
